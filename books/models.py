@@ -13,7 +13,7 @@ class Book(models.Model):
     cover = models.CharField(max_length=4, choices=COVER_CHOICES)
     inventory = models.PositiveIntegerField(validators=[MinValueValidator(0)])
     daily_fee = models.DecimalField(
-        max_digits=8, decimal_places=2, validators=[MinValueValidator(0.0)]
+        max_digits=8, decimal_places=2, validators=[MinValueValidator(0)]
     )
 
     class Meta:
