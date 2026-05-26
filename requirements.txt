@@ -7,3 +7,4 @@ drf-spectacular>=0.26.0
 python-dotenv>=1.0.0
 flake8>=6.1.0
 ruff>=0.15.14
+requests>=2.30.0
