@@ -1,9 +1,9 @@
 from datetime import date, timedelta
 from django.db import transaction
 from rest_framework import serializers
-from books.models import Book
 from books.serializers import BookSerializer
 from borrowings.models import Borrowing
+from borrowings.notifications import send_telegram_notification
 
 
 class BorrowingReadSerializer(serializers.ModelSerializer):
@@ -56,4 +56,14 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             book.inventory -= 1
             book.save()
 
-            return Borrowing.objects.create(**validated_data)
+            borrowings = Borrowing.objects.create(**validated_data)
+
+        notification_message = (
+            f"🚀 *New Borrowing Created!*\n\n"
+            f"• *User ID:* {borrowings.user.id}\n"
+            f"• *Book:* '{book.title}' by {book.author}\n"
+            f"• *Expected Return:* {borrowings.expected_return_date}"
+        )
+        send_telegram_notification(notification_message)
+
+        return borrowings
