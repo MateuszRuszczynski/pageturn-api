@@ -14,6 +14,13 @@ class BookSerializer(serializers.ModelSerializer):
             )
         return value
 
+    def validate_inventory(self, value):
+        if value < 0:
+            raise serializers.ValidationError(
+                "Inventory cannot be negative."
+            )
+        return value
+
     def validate_author(self, value):
         stripped_value = value.strip()
 
