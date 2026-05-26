@@ -11,7 +11,7 @@ class BookSerializerTests(TestCase):
             "author": "J.R.R. Tolkien",
             "cover": "HARD",
             "inventory": 5,
-            "daily_fee": "12.50",
+            "daily_fee": 12.50,
         }
 
     def test_serializer_with_valid_payload(self):
