@@ -9,3 +9,5 @@ flake8>=6.1.0
 ruff>=0.15.14
 requests>=2.30.0
 stripe>=8.0.0
+celery>=5.4.0
+redis>=5.0.0
