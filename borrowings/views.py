@@ -52,7 +52,7 @@ class BorrowingViewSet(
             book.inventory += 1
             book.save()
 
-            if today > borrowing.expected_return_date:
+            if date.today() > borrowing.expected_return_date:
                 overdue_days = (today - borrowing.expected_return_date).days
 
                 fine_amount = Decimal(overdue_days) * book.daily_fee * Decimal("2.0")
