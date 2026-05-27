@@ -3,6 +3,8 @@ from django.db import transaction
 from rest_framework import serializers
 from books.serializers import BookSerializer
 from borrowings.models import Borrowing
+from rest_framework.exceptions import ValidationError
+from payments.models import Payment
 from borrowings.notifications import send_telegram_notification
 
 
@@ -36,17 +38,34 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        user = self.context["request"].user
+
+        has_pending_payments = Payment.objects.filter(
+            borrowing__user=user,
+            status=Payment.StatusChoices.PENDING
+        ).exists()
+
+        if has_pending_payments:
+            raise ValidationError(
+                "You cannot borrow new books because you have unpaid payments or fines. "
+                "Please settle your pending balances first."
+            )
+
         expected_date = attrs.get("expected_return_date")
 
         if expected_date:
             if expected_date < date.today():
-                raise serializers.ValidationError(
-                    {
-                        "expected_return_date": "The expected return date cannot be in the past."
-                    }
+                raise ValidationError(
+                    {"expected_return_date": "The expected return date cannot be in the past."}
                 )
         else:
             attrs["expected_return_date"] = date.today() + timedelta(days=14)
+
+        book = attrs.get("book")
+        if book.inventory <= 0:
+            raise ValidationError(
+                f"Sorry, '{book.title}' is currently out of stock."
+            )
 
         return attrs
 
