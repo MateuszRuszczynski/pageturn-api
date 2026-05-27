@@ -56,14 +56,14 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             book.inventory -= 1
             book.save()
 
-            borrowings = Borrowing.objects.create(**validated_data)
+            borrowing = Borrowing.objects.create(**validated_data)
 
         notification_message = (
             f"🚀 *New Borrowing Created!*\n\n"
-            f"• *User ID:* {borrowings.user.id}\n"
+            f"• *User ID:* {borrowing.user.id}\n"
             f"• *Book:* '{book.title}' by {book.author}\n"
-            f"• *Expected Return:* {borrowings.expected_return_date}"
+            f"• *Expected Return:* {borrowing.expected_return_date}"
         )
         send_telegram_notification(notification_message)
 
-        return borrowings
+        return borrowing
