@@ -14,6 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -164,3 +165,10 @@ SIMPLE_JWT = {
 CELERY_BROKER_URL = "redis://redis:6379/0"
 CELERY_RESULT_BACKEND = "redis://redis:6379/0"
 CELERY_TIMEZONE = "Europe/Warsaw"
+
+CELERY_BEAT_SCHEDULE = {
+    "check-overdue-every-morning": {
+        "task": "borrowings.tasks.check_overdue_borrowings",
+        "schedule": crontab(hour=8, minute=0),
+    },
+}
