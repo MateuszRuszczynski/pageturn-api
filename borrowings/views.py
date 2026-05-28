@@ -13,8 +13,36 @@ from payments.models import Payment
 from payments.services import create_stripe_checkout_session
 from decimal import Decimal
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.types import OpenApiTypes
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all borrowings",
+        description=(
+            "Retrieve a list of borrowings. "
+            "Non-admins see only their own records. "
+            "Admins can see everything and filter by user_id."
+        ),
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+                description="Filter by active status: 'true' (not returned) or 'false' (returned).",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="user_id",
+                type=OpenApiTypes.INT,
+                location=OpenApiParameter.QUERY,
+                description="[ADMIN ONLY] Filter borrowings by a specific User ID.",
+                required=False,
+            ),
+        ],
+    )
+)
 class BorrowingViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
