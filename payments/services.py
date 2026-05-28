@@ -8,11 +8,11 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 def create_stripe_checkout_session(payment: Payment, request) -> dict:
     success_url = (
-        request.build_absolute_uri(reverse("payment:payment-success"))
+        request.build_absolute_uri(reverse("api:payment-success"))
         + "?session_id={CHECKOUT_SESSION_ID}"
     )
 
-    cancel_url = request.build_absolute_uri(reverse("payment:payment-cancel"))
+    cancel_url = request.build_absolute_uri(reverse("api:payment-cancel"))
 
     amount_in_cents = int(payment.money_to_pay * 100)
 
