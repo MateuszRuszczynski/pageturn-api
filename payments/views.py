@@ -6,8 +6,20 @@ from rest_framework.response import Response
 
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List user payments",
+        description="Retrieve Stripe transaction history. Regular users see only their own payment logs, while Admins see all platform financial logs.",
+    ),
+    retrieve=extend_schema(
+        summary="Get payment details",
+        description="Retrieve detailed information regarding a payment transaction, its status, amount, and corresponding Stripe checkout URLs.",
+    ),
+)
+@extend_schema(tags=["Stripe Payments"])
 class PaymentViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
@@ -18,9 +30,7 @@ class PaymentViewSet(
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        queryset = Payment.objects.select_related(
-            "borrowing__book", "borrowing__user"
-        )
+        queryset = Payment.objects.select_related("borrowing__book", "borrowing__user")
         if not self.request.user.is_staff:
             return queryset.filter(borrowing__user=self.request.user)
         return queryset

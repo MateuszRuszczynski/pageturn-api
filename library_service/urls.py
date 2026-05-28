@@ -37,7 +37,7 @@ router.register("payments", PaymentViewSet, basename="payment")
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include((router.urls, "api"), namespace="api")),
-    path("api/users/", include("users.urls")),
+    path("api/users/", include("users.urls", namespace="user")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/doc/swagger/",
