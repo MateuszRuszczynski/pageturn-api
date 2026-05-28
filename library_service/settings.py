@@ -153,7 +153,10 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "PageTurn-API",
-    "DESCRIPTION": "REST API for managing a library's books, borrowings, users, and payments.",
+    "DESCRIPTION": (
+        "REST API for managing a library's books,"
+        "borrowings, users, and payments."
+    ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }

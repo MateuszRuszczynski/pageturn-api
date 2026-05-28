@@ -28,4 +28,7 @@ class Payment(models.Model):
 
     def __str__(self):
         payment_id = self.id if self.id else "New"
-        return f"Payment {payment_id}: {self.type} - {self.status} - {self.money_to_pay} USD"
+        return (
+            f"Payment {payment_id}: {self.type} - "
+            f"{self.status} - {self.money_to_pay} USD"
+        )

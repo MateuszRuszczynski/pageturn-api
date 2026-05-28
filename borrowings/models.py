@@ -32,4 +32,7 @@ class Borrowing(models.Model):
         ]
 
     def __str__(self):
-        return f"User {self.user.id} borrowed Book {self.book.id} ({self.borrow_date} to {self.expected_return_date})"
+        return (
+            f"User {self.user.id} borrowed Book {self.book.id}"
+            f"({self.borrow_date} to {self.expected_return_date})"
+        )

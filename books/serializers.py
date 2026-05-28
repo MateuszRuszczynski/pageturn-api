@@ -35,7 +35,8 @@ class BookSerializer(serializers.ModelSerializer):
         for part in parts:
             if not part[0].isupper():
                 raise serializers.ValidationError(
-                    f"Each part of the author's name ('{part}') must start with an uppercase letter."
+                    f"Each part of the author's name ('{part}')"
+                    f"must start with an uppercase letter."
                 )
 
         return stripped_value

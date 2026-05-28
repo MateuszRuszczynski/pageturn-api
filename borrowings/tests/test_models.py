@@ -49,7 +49,7 @@ class BorrowingModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             borrowing.save()
 
-    def test_database_constraint_prevents_actual_return_date_before_borrow_date(
+    def test_database_prevents_actual_return_date_before_borrow_date(
         self,
     ):
         expected_return_date = self.today + timedelta(days=7)

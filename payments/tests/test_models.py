@@ -44,7 +44,10 @@ class PaymentModelTests(TestCase):
             money="10.00",
         )
 
-        expected_str = f"Payment {payment.id}: {payment.type} - {payment.status} - {payment.money_to_pay} USD"
+        expected_str = (
+            f"Payment {payment.id}: {payment.type} - {payment.status} - "
+            f"{payment.money_to_pay} USD"
+        )
         self.assertEqual(str(payment), expected_str)
 
     def test_payment_fields_and_relations(self):

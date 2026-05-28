@@ -12,7 +12,8 @@ def send_telegram_notification(message: str) -> None:
 
     if not bot_token or not chat_id:
         logger.warning(
-            "Telegram notification skipped: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID not configured."
+            "Telegram notification skipped: TELEGRAM_BOT_TOKEN"
+            "or TELEGRAM_CHAT_ID not configured."
         )
         return
 

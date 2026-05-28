@@ -51,7 +51,8 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
 
         if has_pending_payments:
             raise ValidationError(
-                "You cannot borrow new books because you have unpaid payments or fines. "
+                "You cannot borrow new books because you have"
+                "unpaid payments or fines."
                 "Please settle your pending balances first."
             )
 
@@ -61,7 +62,8 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
             if expected_date < date.today():
                 raise ValidationError(
                     {
-                        "expected_return_date": "The expected return date cannot be in the past."
+                        "expected_return_date": "The expected return date"
+                        "cannot be in the past."
                     }
                 )
         else:

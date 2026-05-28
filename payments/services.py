@@ -27,7 +27,9 @@ def create_stripe_checkout_session(payment: Payment, request) -> dict:
                         "currency": "usd",
                         "product_data": {
                             "name": f"Library {payment.get_type_display()} Fee",
-                            "description": f"Payment for Borrowing ID: {payment.borrowing.id}",
+                            "description": (
+                                f"Payment for Borrowing ID: {payment.borrowing.id}"
+                            ),
                         },
                         "unit_amount": amount_in_cents,
                     },

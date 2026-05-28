@@ -25,35 +25,55 @@ from payments.services import create_stripe_checkout_session
 @extend_schema_view(
     list=extend_schema(
         summary="List borrowings",
-        description="Retrieve a list of borrowings. Regular users see only their own, while Admins get a global view. Supports filtering by `user_id` and `is_active`.",
+        description=(
+            "Retrieve a list of borrowings. Regular users see only their "
+            "own, while Admins get a global view. Supports filtering by "
+            "`user_id` and `is_active`."
+        ),
         parameters=[
             OpenApiParameter(
                 name="is_active",
                 type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
-                description="Filter by active status: 'true' (not returned) or 'false' (returned).",
+                description=(
+                    "Filter by active status: 'true' (not returned) "
+                    "or 'false' (returned)."
+                ),
                 required=False,
             ),
             OpenApiParameter(
                 name="user_id",
                 type=OpenApiTypes.INT,
                 location=OpenApiParameter.QUERY,
-                description="[ADMIN ONLY] Filter borrowings by a specific User ID.",
+                description=(
+                    "[ADMIN ONLY] Filter borrowings by aspecific User ID."
+                ),
                 required=False,
             ),
         ],
     ),
     retrieve=extend_schema(
         summary="Get borrowing details",
-        description="Retrieve detailed information about a specific borrowing record, including nested book data.",
+        description=(
+            "Retrieve detailed information about a specific borrowing "
+            "record, including nested book data."
+        ),
     ),
     create=extend_schema(
         summary="Create a new borrowing",
-        description="Allow authenticated users to borrow a book. Validates book inventory, automatically calculates the expected return date, and initializes a Stripe payment session.",
+        description=(
+            "Allow authenticated users to borrow a book. Validates book "
+            "inventory, automatically calculates the expected return date, "
+            "and initializes a Stripe payment session."
+        ),
     ),
     return_book=extend_schema(
         summary="Return a borrowed book",
-        description="Endpoint to handle book returns. If the return is overdue, the system automatically calculates a fine and generates an associated Stripe payment session.",
+        description=(
+            "Endpoint to handle book returns. If the return is overdue, "
+            "the system automatically calculates a fine and generates an "
+            "associated Stripe payment session."
+        ),
     ),
 )
 @extend_schema(tags=["Borrowings & Returns"])
@@ -78,7 +98,9 @@ class BorrowingViewSet(
         is_active = self.request.query_params.get("is_active")
         if is_active is not None:
             is_active_bool = is_active.lower() in ("true", "1")
-            queryset = queryset.filter(actual_return_date__isnull=is_active_bool)
+            queryset = queryset.filter(
+                actual_return_date__isnull=is_active_bool
+            )
 
         return queryset
 
@@ -106,9 +128,13 @@ class BorrowingViewSet(
             book.save()
 
             if date.today() > borrowing.expected_return_date:
-                overdue_days = (date.today() - borrowing.expected_return_date).days
+                overdue_days = (
+                    date.today() - borrowing.expected_return_date
+                ).days
 
-                fine_amount = Decimal(overdue_days) * book.daily_fee * Decimal("2.0")
+                fine_amount = (
+                    Decimal(overdue_days) * book.daily_fee * Decimal("2.0")
+                )
 
                 Payment.objects.create(
                     status=Payment.StatusChoices.PENDING,
@@ -144,7 +170,10 @@ class BorrowingViewSet(
         else:
             raise serializers.ValidationError(
                 {
-                    "payment": "External billing gateway session creation failed. Transaction aborted."
+                    "payment": (
+                        "External billing gateway session creation failed. "
+                        "Transaction aborted."
+                    )
                 }
             )
 
