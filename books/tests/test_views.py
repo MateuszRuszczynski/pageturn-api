@@ -5,11 +5,11 @@ from rest_framework.test import APITestCase, APIClient
 from books.models import Book
 from books.serializers import BookSerializer
 
-BOOKS_URL = reverse("book:book-list")
+BOOKS_URL = reverse("api:book-list")
 
 
 def detail_url(book_id):
-    return reverse("book:book-detail", args=[book_id])
+    return reverse("api:book-detail", args=[book_id])
 
 
 class PublicBookApiTests(APITestCase):
