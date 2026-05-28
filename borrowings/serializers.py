@@ -40,9 +40,8 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        request = self.context.get("request")
-        user = request.user if request else None
-        
+        user = self.context["request"].user
+
         has_pending_payments = Payment.objects.filter(
             borrowing__user=user,
             status=Payment.StatusChoices.PENDING
