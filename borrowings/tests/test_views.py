@@ -100,6 +100,30 @@ class BorrowingApiTests(APITestCase):
         created_borrowing = Borrowing.objects.get(id=response.data["id"])
         self.assertEqual(created_borrowing.user, self.user1)
 
+    def test_filter_borrowings_by_active_status(self):
+        self.client.force_authenticate(user=self.admin_user)
+
+        Borrowing.objects.create(
+            expected_return_date=date.today() + timedelta(days=5),
+            actual_return_date=date.today(),
+            book=self.book1,
+            user=self.user1,
+        )
+
+        response_active = self.client.get(BORROWINGS_URL, {"is_active": "true"})
+        self.assertEqual(len(response_active.data), 2)
+
+        response_inactive = self.client.get(BORROWINGS_URL, {"is_active": "false"})
+        self.assertEqual(len(response_inactive.data), 1)
+
+    def test_admin_can_filter_by_user_id(self):
+        self.client.force_authenticate(user=self.admin_user)
+
+        response = self.client.get(BORROWINGS_URL, {"user_id": self.user2.id})
+
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["user"], self.user2.email)
+
 
 class BorrowingReturnFineTests(TestCase):
     def setUp(self):
@@ -160,3 +184,30 @@ class BorrowingReturnFineTests(TestCase):
 
         self.assertEqual(payment.money_to_pay, expected_fine)
         self.assertEqual(payment.status, Payment.StatusChoices.PENDING)
+
+    @patch("borrowings.views.create_stripe_checkout_session")
+    def test_return_book_on_time_does_not_create_fine(self, mock_stripe):
+        on_time_borrowing = Borrowing.objects.create(
+            expected_return_date=date.today() + timedelta(days=2),
+            book=self.book,
+            user=self.user,
+        )
+        url = reverse("api:borrowing-return-book", kwargs={"pk": on_time_borrowing.id})
+
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        on_time_borrowing.refresh_from_db()
+        self.assertEqual(on_time_borrowing.actual_return_date, date.today())
+
+        fine_exists = Payment.objects.filter(
+            borrowing=on_time_borrowing, type=Payment.TypeChoices.FINE
+        ).exists()
+        self.assertFalse(fine_exists)
+
+    def test_cannot_return_already_returned_book(self):
+        self.borrowing.actual_return_date = date.today()
+        self.borrowing.save()
+
+        response = self.client.post(self.return_url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
