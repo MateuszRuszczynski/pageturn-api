@@ -22,13 +22,21 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from rest_framework import routers
+from books.views import BookViewSet
+from borrowings.views import BorrowingViewSet
+from payments.views import PaymentViewSet
+
+router = routers.DefaultRouter()
+
+router.register("books", BookViewSet, basename="book")
+router.register("borrowings", BorrowingViewSet, basename="borrowing")
+router.register("payments", PaymentViewSet, basename="payment")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("api/users/", include("users.urls", namespace="user")),
-    path("api/", include("books.urls", namespace="book")),
-    path("api/", include("borrowings.urls", namespace="borrowing")),
-    path("api/", include("payments.urls", namespace="payment")),
+    path("api/", include((router.urls, "payment"), namespace="payment")),
+    path("api/users/", include("users.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/doc/swagger/",
