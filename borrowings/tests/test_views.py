@@ -86,9 +86,14 @@ class BorrowingApiTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    @patch("borrowings.views.create_stripe_checkout_session")
     def test_create_borrowing_endpoint_attaches_current_user_automatically(
-        self,
+        self, mock_stripe
     ):
+        mock_stripe.return_value = {
+            "session_url": "https://checkout.stripe.com/c/pay/test_session",
+            "session_id": "cs_test_id",
+        }
         self.client.force_authenticate(user=self.user1)
         payload = {
             "book": self.book2.id,
@@ -113,14 +118,10 @@ class BorrowingApiTests(APITestCase):
             user=self.user1,
         )
 
-        response_active = self.client.get(
-            BORROWINGS_URL, {"is_active": "true"}
-        )
+        response_active = self.client.get(BORROWINGS_URL, {"is_active": "true"})
         self.assertEqual(len(response_active.data), 2)
 
-        response_inactive = self.client.get(
-            BORROWINGS_URL, {"is_active": "false"}
-        )
+        response_inactive = self.client.get(BORROWINGS_URL, {"is_active": "false"})
         self.assertEqual(len(response_inactive.data), 1)
 
     def test_admin_can_filter_by_user_id(self):
@@ -199,9 +200,7 @@ class BorrowingReturnFineTests(TestCase):
             book=self.book,
             user=self.user,
         )
-        url = reverse(
-            "api:borrowing-return-book", kwargs={"pk": on_time_borrowing.id}
-        )
+        url = reverse("api:borrowing-return-book", kwargs={"pk": on_time_borrowing.id})
 
         response = self.client.post(url)
 

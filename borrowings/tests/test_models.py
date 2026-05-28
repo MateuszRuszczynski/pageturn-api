@@ -31,7 +31,7 @@ class BorrowingModelTests(TestCase):
         )
 
         expected_str = (
-            f"User {self.user.id} borrowed Book {self.book.id} "
+            f"User {self.user.id} borrowed Book {self.book.id}"
             f"({borrowing.borrow_date} to {expected_return_date})"
         )
         self.assertEqual(str(borrowing), expected_str)
