@@ -1,20 +1,25 @@
-from rest_framework import viewsets, mixins, status
+from datetime import date
+from decimal import Decimal
+
+from django.db import transaction
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    extend_schema,
+    extend_schema_view,
+)
+from rest_framework import mixins, serializers, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from borrowings.models import Borrowing
 from borrowings.serializers import (
-    BorrowingReadSerializer,
     BorrowingCreateSerializer,
+    BorrowingReadSerializer,
 )
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from django.db import transaction
-from datetime import date
 from payments.models import Payment
 from payments.services import create_stripe_checkout_session
-from decimal import Decimal
-from rest_framework import serializers
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
-from drf_spectacular.types import OpenApiTypes
 
 
 @extend_schema_view(
@@ -64,7 +69,9 @@ class BorrowingViewSet(
         is_active = self.request.query_params.get("is_active")
         if is_active is not None:
             is_active_bool = is_active.lower() in ("true", "1")
-            queryset = queryset.filter(actual_return_date__isnull=is_active_bool)
+            queryset = queryset.filter(
+                actual_return_date__isnull=is_active_bool
+            )
 
         return queryset
 
@@ -92,9 +99,13 @@ class BorrowingViewSet(
             book.save()
 
             if date.today() > borrowing.expected_return_date:
-                overdue_days = (date.today() - borrowing.expected_return_date).days
+                overdue_days = (
+                    date.today() - borrowing.expected_return_date
+                ).days
 
-                fine_amount = Decimal(overdue_days) * book.daily_fee * Decimal("2.0")
+                fine_amount = (
+                    Decimal(overdue_days) * book.daily_fee * Decimal("2.0")
+                )
 
                 Payment.objects.create(
                     status=Payment.StatusChoices.PENDING,
@@ -145,5 +156,7 @@ class BorrowingViewSet(
         )
         headers = self.get_success_headers(return_serializer.data)
         return Response(
-            return_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+            return_serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers,
         )

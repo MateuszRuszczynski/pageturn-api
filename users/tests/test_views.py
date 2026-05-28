@@ -1,13 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient, APITestCase
 
 User = get_user_model()
 
 
 class PublicUserApiTests(APITestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.register_url = reverse("user:create")
@@ -26,7 +25,9 @@ class PublicUserApiTests(APITestCase):
         self.assertEqual(response.data["email"], self.user_data["email"])
         self.assertNotIn("password", response.data)
 
-        user_exists = User.objects.filter(email=self.user_data["email"]).exists()
+        user_exists = User.objects.filter(
+            email=self.user_data["email"]
+        ).exists()
         self.assertTrue(user_exists)
 
     def test_create_user_fails_with_invalid_data(self):
@@ -40,7 +41,6 @@ class PublicUserApiTests(APITestCase):
 
 
 class PrivateUserApiTests(APITestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.me_url = reverse("user:user_account")

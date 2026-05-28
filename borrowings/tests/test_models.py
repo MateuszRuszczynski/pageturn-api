@@ -1,13 +1,14 @@
 from datetime import date, timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.test import TestCase
+
 from books.models import Book
 from borrowings.models import Borrowing
 
 
 class BorrowingModelTests(TestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="testuser@library.com", password="TestPassword123!"
@@ -48,7 +49,9 @@ class BorrowingModelTests(TestCase):
         with self.assertRaises(IntegrityError):
             borrowing.save()
 
-    def test_database_constraint_prevents_actual_return_date_before_borrow_date(self):
+    def test_database_constraint_prevents_actual_return_date_before_borrow_date(
+        self,
+    ):
         expected_return_date = self.today + timedelta(days=7)
         past_actual_return_date = self.today - timedelta(days=2)
 

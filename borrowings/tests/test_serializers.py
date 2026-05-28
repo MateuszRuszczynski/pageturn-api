@@ -1,13 +1,17 @@
 from datetime import date, timedelta
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from books.models import Book
-from borrowings.serializers import BorrowingCreateSerializer, BorrowingReadSerializer
 from rest_framework.test import APIRequestFactory
+
+from books.models import Book
+from borrowings.serializers import (
+    BorrowingCreateSerializer,
+    BorrowingReadSerializer,
+)
 
 
 class BorrowingSerializerTests(TestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="patron@library.com", password="SecurePassword123!"
@@ -28,8 +32,7 @@ class BorrowingSerializerTests(TestCase):
 
     def _create_serializer(self, data):
         return BorrowingCreateSerializer(
-            data=data,
-            context=self._get_serializer_context()
+            data=data, context=self._get_serializer_context()
         )
 
     def test_read_serializer_outputs_detailed_nested_data(self):

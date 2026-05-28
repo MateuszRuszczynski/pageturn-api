@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient, APITestCase
+
 from books.models import Book
 from books.serializers import BookSerializer
 
@@ -13,7 +14,6 @@ def detail_url(book_id):
 
 
 class PublicBookApiTests(APITestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.book = Book.objects.create(
@@ -53,7 +53,6 @@ class PublicBookApiTests(APITestCase):
 
 
 class PrivateAdminBookApiTests(APITestCase):
-
     def setUp(self):
         self.client = APIClient()
         self.admin_user = get_user_model().objects.create_superuser(

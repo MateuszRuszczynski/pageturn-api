@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from books.models import Book
 
 
@@ -17,4 +18,6 @@ class BookModelTests(TestCase):
         self.assertEqual(book.cover, "SOFT")
         self.assertEqual(book.inventory, 15)
         self.assertEqual(book.daily_fee, 1.20)
-        self.assertEqual(str(book), "To Kill a Mockingbird by Harper Lee (SOFT)")
+        self.assertEqual(
+            str(book), "To Kill a Mockingbird by Harper Lee (SOFT)"
+        )

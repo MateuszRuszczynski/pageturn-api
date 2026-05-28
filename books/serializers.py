@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from books.models import Book
 
 
@@ -16,9 +17,7 @@ class BookSerializer(serializers.ModelSerializer):
 
     def validate_inventory(self, value):
         if value < 0:
-            raise serializers.ValidationError(
-                "Inventory cannot be negative."
-            )
+            raise serializers.ValidationError("Inventory cannot be negative.")
         return value
 
     def validate_author(self, value):

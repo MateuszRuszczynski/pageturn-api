@@ -3,10 +3,7 @@ from django.db import models
 
 
 class Book(models.Model):
-    COVER_CHOICES = {
-        "HARD": "Hardcover",
-        "SOFT": "Softcover"
-    }
+    COVER_CHOICES = {"HARD": "Hardcover", "SOFT": "Softcover"}
 
     title = models.CharField(max_length=100)
     author = models.CharField(max_length=50)
@@ -19,10 +16,12 @@ class Book(models.Model):
     class Meta:
         constraints = [
             models.CheckConstraint(
-                condition=models.Q(inventory__gte=0), name="book_inventory_gte_0"
+                condition=models.Q(inventory__gte=0),
+                name="book_inventory_gte_0",
             ),
             models.CheckConstraint(
-                condition=models.Q(daily_fee__gte=0), name="book_daily_fee_gte_0"
+                condition=models.Q(daily_fee__gte=0),
+                name="book_daily_fee_gte_0",
             ),
         ]
 

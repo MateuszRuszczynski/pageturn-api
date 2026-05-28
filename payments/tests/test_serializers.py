@@ -1,15 +1,16 @@
 from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from rest_framework.test import APIRequestFactory
+
 from books.models import Book
 from borrowings.models import Borrowing
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
-from rest_framework.test import APIRequestFactory
 
 
 class PaymentSerializerTests(TestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="patron@library.com", password="SecurePassword123!"

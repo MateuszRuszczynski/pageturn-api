@@ -1,10 +1,9 @@
 from django.test import TestCase
-from rest_framework.serializers import ValidationError
+
 from books.serializers import BookSerializer
 
 
 class BookSerializerTests(TestCase):
-
     def setUp(self):
         self.valid_payload = {
             "title": "The Hobbit",

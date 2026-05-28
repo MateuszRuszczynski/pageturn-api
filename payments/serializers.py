@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from payments.models import Payment
 
 
@@ -14,4 +15,10 @@ class PaymentSerializer(serializers.ModelSerializer):
             "session_id",
             "money_to_pay",
         )
-        read_only_fields = ("id", "status", "session_url", "session_id", "money_to_pay")
+        read_only_fields = (
+            "id",
+            "status",
+            "session_url",
+            "session_id",
+            "money_to_pay",
+        )

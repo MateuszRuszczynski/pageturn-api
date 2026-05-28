@@ -1,18 +1,21 @@
 from datetime import date, timedelta
+
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
+
 from books.serializers import BookSerializer
 from borrowings.models import Borrowing
-from rest_framework.exceptions import ValidationError
+from borrowings.notifications import send_telegram_notification
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
-from borrowings.notifications import send_telegram_notification
 
 
 class BorrowingReadSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     user = serializers.EmailField(source="user.email", read_only=True)
     payments = PaymentSerializer(many=True, read_only=True)
+
     class Meta:
         model = Borrowing
         fields = (
@@ -22,7 +25,7 @@ class BorrowingReadSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
-            "payments"
+            "payments",
         )
         read_only_fields = fields
 
@@ -43,8 +46,7 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         user = self.context["request"].user
 
         has_pending_payments = Payment.objects.filter(
-            borrowing__user=user,
-            status=Payment.StatusChoices.PENDING
+            borrowing__user=user, status=Payment.StatusChoices.PENDING
         ).exists()
 
         if has_pending_payments:
@@ -58,7 +60,9 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         if expected_date:
             if expected_date < date.today():
                 raise ValidationError(
-                    {"expected_return_date": "The expected return date cannot be in the past."}
+                    {
+                        "expected_return_date": "The expected return date cannot be in the past."
+                    }
                 )
         else:
             attrs["expected_return_date"] = date.today() + timedelta(days=14)

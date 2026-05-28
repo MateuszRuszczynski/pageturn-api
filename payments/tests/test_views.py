@@ -1,8 +1,10 @@
 from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase, APIClient
+from rest_framework.test import APIClient, APITestCase
+
 from books.models import Book
 from borrowings.models import Borrowing
 from payments.models import Payment
@@ -96,5 +98,7 @@ class PaymentApiTests(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["session_id"], self.payment_user1.session_id)
+        self.assertEqual(
+            response.data["session_id"], self.payment_user1.session_id
+        )
         self.assertEqual(response.data["money_to_pay"], "12.50")

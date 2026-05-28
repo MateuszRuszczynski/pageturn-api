@@ -1,13 +1,14 @@
 from decimal import Decimal
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+
 from books.models import Book
 from borrowings.models import Borrowing
 from payments.models import Payment
 
 
 class PaymentModelTests(TestCase):
-
     def setUp(self):
         self.user = get_user_model().objects.create_user(
             email="testuser@library.com", password="Password123!"

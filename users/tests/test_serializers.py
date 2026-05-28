@@ -1,12 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from users.serializers import UserSerializer, UserManageSerializer
+
+from users.serializers import UserManageSerializer, UserSerializer
 
 User = get_user_model()
 
 
 class UserSerializerTests(TestCase):
-
     def setUp(self):
         self.user_data = {
             "email": "test@example.com",
@@ -18,7 +18,9 @@ class UserSerializerTests(TestCase):
     def test_serializer_with_valid_data(self):
         serializer = UserSerializer(data=self.user_data)
         self.assertTrue(serializer.is_valid())
-        self.assertEqual(serializer.validated_data["email"], self.user_data["email"])
+        self.assertEqual(
+            serializer.validated_data["email"], self.user_data["email"]
+        )
 
     def test_password_is_write_only(self):
         serializer = UserSerializer(data=self.user_data)
@@ -62,7 +64,9 @@ class UserSerializerTests(TestCase):
         )
         update_payload = {"first_name": "Kevin", "last_name": "Smith"}
 
-        serializer = UserSerializer(instance=user, data=update_payload, partial=True)
+        serializer = UserSerializer(
+            instance=user, data=update_payload, partial=True
+        )
         self.assertTrue(serializer.is_valid())
         updated_user = serializer.save()
 
@@ -75,15 +79,18 @@ class UserSerializerTests(TestCase):
         )
         update_payload = {"password": "BrandNewSecurePassword987!"}
 
-        serializer = UserSerializer(instance=user, data=update_payload, partial=True)
+        serializer = UserSerializer(
+            instance=user, data=update_payload, partial=True
+        )
         self.assertTrue(serializer.is_valid())
         updated_user = serializer.save()
 
-        self.assertTrue(updated_user.check_password("BrandNewSecurePassword987!"))
+        self.assertTrue(
+            updated_user.check_password("BrandNewSecurePassword987!")
+        )
 
 
 class UserManageSerializerTests(TestCase):
-
     def test_serializer_output_schema(self):
         user = User.objects.create_user(
             email="profile@example.com",

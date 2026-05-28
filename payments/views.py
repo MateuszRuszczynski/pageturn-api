@@ -1,13 +1,11 @@
 import stripe
-from rest_framework import viewsets, mixins, status
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
 from payments.models import Payment
 from payments.serializers import PaymentSerializer
-from payments.services import create_stripe_checkout_session
-from borrowings.models import Borrowing
-from decimal import Decimal
 
 
 class PaymentViewSet(
@@ -20,7 +18,9 @@ class PaymentViewSet(
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        queryset = Payment.objects.select_related("borrowing__book", "borrowing__user")
+        queryset = Payment.objects.select_related(
+            "borrowing__book", "borrowing__user"
+        )
         if not self.request.user.is_staff:
             return queryset.filter(borrowing__user=self.request.user)
         return queryset
@@ -30,7 +30,8 @@ class PaymentViewSet(
         session_id = request.query_params.get("session_id")
         if not session_id:
             return Response(
-                {"detail": "Missing session_id"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Missing session_id"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
@@ -45,11 +46,13 @@ class PaymentViewSet(
                 )
 
             return Response(
-                {"detail": "Payment pending"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Payment pending"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except (Payment.DoesNotExist, stripe.error.StripeError):
             return Response(
-                {"detail": "Error verification"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "Error verification"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
     @action(methods=["GET"], detail=False, url_path="cancel")
