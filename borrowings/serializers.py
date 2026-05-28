@@ -5,13 +5,15 @@ from books.serializers import BookSerializer
 from borrowings.models import Borrowing
 from rest_framework.exceptions import ValidationError
 from payments.models import Payment
+from payments.serializers import PaymentSerializer
 from borrowings.notifications import send_telegram_notification
 
 
 class BorrowingReadSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     user = serializers.EmailField(source="user.email", read_only=True)
-
+    payments = PaymentSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Borrowing
         fields = (
@@ -21,6 +23,7 @@ class BorrowingReadSerializer(serializers.ModelSerializer):
             "actual_return_date",
             "book",
             "user",
+            "payments"
         )
         read_only_fields = fields
 
