@@ -112,7 +112,7 @@ class BorrowingViewSet(
 
         self.perform_create(serializer)
 
-        return_serializer = BorrowingDetailSerializer(
+        return_serializer = BorrowingReadSerializer(
             serializer.instance, context={"request": request}
         )
         headers = self.get_success_headers(return_serializer.data)

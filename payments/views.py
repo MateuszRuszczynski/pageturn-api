@@ -25,42 +25,6 @@ class PaymentViewSet(
             return queryset.filter(borrowing__user=self.request.user)
         return queryset
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        borrowing_id = request.data.get("borrowing")
-        try:
-            borrowing = Borrowing.objects.get(id=borrowing_id)
-        except Borrowing.DoesNotExist:
-            return Response(
-                {"detail": "Specified borrowing does not exist."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        duration = (borrowing.expected_return_date - borrowing.borrow_date).days
-        days = max(duration, 1)
-
-        calculated_amount = Decimal(days) * borrowing.book.daily_fee
-
-        payment = serializer.save(money_to_pay=calculated_amount)
-
-        stripe_data = create_stripe_checkout_session(payment, request)
-
-        if stripe_data:
-            payment.session_url = stripe_data.get("session_url")
-            payment.session_id = stripe_data.get("session_id")
-            payment.save()
-
-            return Response(
-                self.get_serializer(payment).data, status=status.HTTP_201_CREATED
-            )
-
-        return Response(
-            {"detail": "Failed to initialize external billing gateway session."},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        )
-
     @action(methods=["GET"], detail=False, url_path="success")
     def success(self, request):
         session_id = request.query_params.get("session_id")
