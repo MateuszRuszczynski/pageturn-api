@@ -13,7 +13,6 @@ class BorrowingReadSerializer(serializers.ModelSerializer):
     book = BookSerializer(read_only=True)
     user = serializers.EmailField(source="user.email", read_only=True)
     payments = PaymentSerializer(many=True, read_only=True)
-    
     class Meta:
         model = Borrowing
         fields = (
@@ -41,8 +40,9 @@ class BorrowingCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        user = self.context["request"].user
-
+        request = self.context.get("request")
+        user = request.user if request else None
+        
         has_pending_payments = Payment.objects.filter(
             borrowing__user=user,
             status=Payment.StatusChoices.PENDING
