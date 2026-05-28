@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from books.models import Book
 from borrowings.serializers import BorrowingCreateSerializer, BorrowingReadSerializer
+from rest_framework.test import APIRequestFactory
 
 
 class BorrowingSerializerTests(TestCase):
@@ -18,13 +19,24 @@ class BorrowingSerializerTests(TestCase):
             inventory=2,
             daily_fee="3.00",
         )
-        self.today = date.today()
+
+    def _get_serializer_context(self):
+        factory = APIRequestFactory()
+        request = factory.post("/api/borrowings/")
+        request.user = self.user
+        return {"request": request}
+
+    def _create_serializer(self, data):
+        return BorrowingCreateSerializer(
+            data=data,
+            context=self._get_serializer_context()
+        )
 
     def test_read_serializer_outputs_detailed_nested_data(self):
         from borrowings.models import Borrowing
 
         borrowing = Borrowing.objects.create(
-            expected_return_date=self.today + timedelta(days=7),
+            expected_return_date=date.today() + timedelta(days=7),
             book=self.book,
             user=self.user,
         )
@@ -38,14 +50,14 @@ class BorrowingSerializerTests(TestCase):
         payload = {
             "book": self.book.id,
         }
+        serializer = self._create_serializer(payload)
 
-        serializer = BorrowingCreateSerializer(data=payload)
         self.assertTrue(serializer.is_valid())
 
-        validated_data = serializer.save(user=self.user)
-        expected_default_date = self.today + timedelta(days=14)
+        borrowing = serializer.save(user=self.user)
+        expected_default_date = date.today() + timedelta(days=14)
 
-        self.assertEqual(validated_data.expected_return_date, expected_default_date)
+        self.assertEqual(borrowing.expected_return_date, expected_default_date)
 
     def test_create_serializer_fails_when_book_out_of_stock(self):
         self.book.inventory = 0
@@ -53,32 +65,33 @@ class BorrowingSerializerTests(TestCase):
 
         payload = {
             "book": self.book.id,
-            "expected_return_date": self.today + timedelta(days=5),
+            "expected_return_date": date.today() + timedelta(days=5),
         }
 
-        serializer = BorrowingCreateSerializer(data=payload)
+        serializer = self._create_serializer(payload)
         self.assertFalse(serializer.is_valid())
         self.assertIn("book", serializer.errors)
 
     def test_create_serializer_fails_for_past_expected_return_date(self):
-        past_date = self.today - timedelta(days=2)
+        past_date = date.today() - timedelta(days=2)
         payload = {
             "book": self.book.id,
             "expected_return_date": past_date,
         }
 
-        serializer = BorrowingCreateSerializer(data=payload)
+        serializer = self._create_serializer(payload)
+
         self.assertFalse(serializer.is_valid())
         self.assertIn("expected_return_date", serializer.errors)
 
     def test_create_serializer_decrements_book_inventory_by_one(self):
         payload = {
             "book": self.book.id,
-            "expected_return_date": self.today + timedelta(days=5),
+            "expected_return_date": date.today() + timedelta(days=5),
         }
 
         initial_inventory = self.book.inventory
-        serializer = BorrowingCreateSerializer(data=payload)
+        serializer = self._create_serializer(payload)
 
         self.assertTrue(serializer.is_valid())
         serializer.save(user=self.user)
