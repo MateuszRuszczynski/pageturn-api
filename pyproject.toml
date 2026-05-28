@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 79
+
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I"]
+ignore = []
+
+[tool.ruff.lint.isort]
+combine-as-imports = true

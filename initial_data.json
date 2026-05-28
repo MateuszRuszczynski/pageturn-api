@@ -1,0 +1,51 @@
+[
+  {
+    "model": "books.book",
+    "pk": 1,
+    "fields": {
+      "title": "The Hobbit",
+      "author": "J.R.R. Tolkien",
+      "cover": "HARD",
+      "inventory": 5,
+      "daily_fee": "2.00"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 2,
+    "fields": {
+      "title": "Dune",
+      "author": "Frank Herbert",
+      "cover": "SOFT",
+      "inventory": 3,
+      "daily_fee": "3.50"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 3,
+    "fields": {
+      "title": "1984",
+      "author": "George Orwell",
+      "cover": "SOFT",
+      "inventory": 0,
+      "daily_fee": "1.50"
+    }
+  },
+  {
+    "model": "users.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$600000$mockedpasswordcache$j2K9xLP82nQ=",
+      "last_login": null,
+      "is_superuser": false,
+      "email": "reader@library.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "is_staff": false,
+      "is_active": true,
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]
