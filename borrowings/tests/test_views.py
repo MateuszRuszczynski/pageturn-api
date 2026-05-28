@@ -5,12 +5,16 @@ from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from books.models import Book
 from borrowings.models import Borrowing
+from payments.models import Payment
+from django.test import TestCase
+from decimal import Decimal
+from unittest.mock import patch
 
-BORROWINGS_URL = reverse("borrowing:borrowing-list")
+BORROWINGS_URL = reverse("api:borrowing-list")
 
 
 def detail_url(borrowing_id):
-    return reverse("borrowing:borrowing-detail", args=[borrowing_id])
+    return reverse("api:borrowing-detail", args=[borrowing_id])
 
 
 class BorrowingApiTests(APITestCase):
@@ -91,7 +95,68 @@ class BorrowingApiTests(APITestCase):
         response = self.client.post(BORROWINGS_URL, payload)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["book"], self.book2.id)
+        self.assertEqual(response.data["book"]["id"], self.book2.id)
 
         created_borrowing = Borrowing.objects.get(id=response.data["id"])
         self.assertEqual(created_borrowing.user, self.user1)
+
+
+class BorrowingReturnFineTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            email="test@user.com", password="password123"
+        )
+        self.client.force_authenticate(self.user)
+
+        self.book = Book.objects.create(
+            title="Test Book",
+            author="Author",
+            inventory=5,
+            daily_fee=Decimal("2.50"),
+            cover="HARD",
+        )
+
+        self.borrowing = Borrowing.objects.create(
+            expected_return_date=date.today() + timedelta(days=5),
+            book=self.book,
+            user=self.user,
+        )
+
+        Borrowing.objects.filter(id=self.borrowing.id).update(
+            borrow_date=date.today() - timedelta(days=10),
+            expected_return_date=date.today() - timedelta(days=5),
+        )
+
+        self.borrowing.refresh_from_db()
+        self.return_url = reverse(
+            "api:borrowing-return-book", kwargs={"pk": self.borrowing.id}
+        )
+
+    @patch("borrowings.views.create_stripe_checkout_session")
+    def test_return_book_overdue_calculates_fine_correctly(self, mock_stripe):
+        mock_stripe.return_value = {
+            "session_url": "https://checkout.stripe.com/c/pay/test_fine_session",
+            "session_id": "cs_test_fine_id",
+        }
+
+        self.assertEqual(self.book.inventory, 5)
+        response = self.client.post(self.return_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.borrowing.refresh_from_db()
+        self.book.refresh_from_db()
+        self.assertEqual(self.borrowing.actual_return_date, date.today())
+        self.assertEqual(self.book.inventory, 6)
+
+        payment_exists = Payment.objects.filter(
+            borrowing=self.borrowing, type=Payment.TypeChoices.FINE
+        ).exists()
+        self.assertTrue(payment_exists)
+
+        payment = Payment.objects.get(
+            borrowing=self.borrowing, type=Payment.TypeChoices.FINE
+        )
+        expected_fine = Decimal("5") * self.book.daily_fee * Decimal("2.0")
+
+        self.assertEqual(payment.money_to_pay, expected_fine)
+        self.assertEqual(payment.status, Payment.StatusChoices.PENDING)
