@@ -10,6 +10,9 @@ from rest_framework.response import Response
 from django.db import transaction
 from datetime import date
 from payments.models import Payment
+from payments.services import create_stripe_checkout_session
+from decimal import Decimal
+from rest_framework import serializers
 
 
 class BorrowingViewSet(
@@ -41,9 +44,6 @@ class BorrowingViewSet(
         if self.action in ("list", "retrieve", "return_book"):
             return BorrowingReadSerializer
         return BorrowingCreateSerializer
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
 
     @action(methods=["POST"], detail=True, url_path="return")
     def return_book(self, request, pk=None):
@@ -77,3 +77,45 @@ class BorrowingViewSet(
 
         serializer = self.get_serializer(borrowing)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        borrowing = serializer.save(user=self.request.user)
+
+        days = (borrowing.expected_return_date - borrowing.borrow_date).days
+        rental_days = max(days, 1)
+        total_price = Decimal(rental_days) * borrowing.book.daily_fee
+
+        payment = Payment.objects.create(
+            status=Payment.StatusChoices.PENDING,
+            type=Payment.TypeChoices.PAYMENT,
+            borrowing=borrowing,
+            money_to_pay=total_price,
+        )
+
+        stripe_data = create_stripe_checkout_session(payment, self.request)
+
+        if stripe_data:
+            payment.session_url = stripe_data.get("session_url")
+            payment.session_id = stripe_data.get("session_id")
+            payment.save()
+        else:
+            raise serializers.ValidationError(
+                {
+                    "payment": "External billing gateway session creation failed. Transaction aborted."
+                }
+            )
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)
+
+        return_serializer = BorrowingDetailSerializer(
+            serializer.instance, context={"request": request}
+        )
+        headers = self.get_success_headers(return_serializer.data)
+        return Response(
+            return_serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
